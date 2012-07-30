@@ -41,6 +41,9 @@ public class JcCardReqBean extends JcCardBean {
     // imsi
     private String imsi;
 
+    // usim卡号
+    private String usim;
+
     // 操作类型
     private String operateType;
 
@@ -163,6 +166,14 @@ public class JcCardReqBean extends JcCardBean {
 
     public int getProductNum() {
         return productNum;
+    }
+
+    public void setUsim(String usim) {
+        this.usim = usim;
+    }
+
+    public String getUsim() {
+        return usim;
     }
 
 }

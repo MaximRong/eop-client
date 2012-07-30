@@ -16,6 +16,7 @@ public class JcCardCobRsq {
 
     // 是否有新消息 true 有新消息 false 无
     private boolean hasMsg;
+
     // 处理结果 0 失败 1 成功 2 处理中 
     private String result;
 
