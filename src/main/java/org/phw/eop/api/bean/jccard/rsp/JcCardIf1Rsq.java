@@ -3,7 +3,10 @@ package org.phw.eop.api.bean.jccard.rsp;
 import java.util.List;
 
 import org.phw.eop.api.bean.jccard.req.JcCardBean;
+import org.phw.eop.api.internal.mapping.annotation.EopBean;
+import org.phw.eop.api.internal.mapping.propmapping.PropMappingFieldName;
 
+@EopBean(propMapping = PropMappingFieldName.class)
 public class JcCardIf1Rsq extends JcCardBean {
 
     private String result;

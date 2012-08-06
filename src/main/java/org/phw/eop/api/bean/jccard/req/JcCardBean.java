@@ -13,7 +13,7 @@ public class JcCardBean {
     protected String businessType;
 
     // 卡操作会话的初始请求
-    private boolean firstCardSession;
+    //    private boolean firstCardSession;
 
     // 是否有返回消息
     private boolean hasBack;
@@ -42,12 +42,12 @@ public class JcCardBean {
         return hasBack;
     }
 
-    public void setFirstCardSession(boolean firstCardSession) {
-        this.firstCardSession = firstCardSession;
-    }
-
-    public boolean isFirstCardSession() {
-        return firstCardSession;
-    }
+    //    public void setFirstCardSession(boolean firstCardSession) {
+    //        this.firstCardSession = firstCardSession;
+    //    }
+    //
+    //    public boolean isFirstCardSession() {
+    //        return firstCardSession;
+    //    }
 
 }
