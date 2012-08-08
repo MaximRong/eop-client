@@ -12,6 +12,9 @@ public class JcCardBean {
     // 业务类型
     protected String businessType;
 
+    // 是否返回消息
+    private boolean isBackMsg;
+
     // 卡操作会话的初始请求
     //    private boolean firstCardSession;
 
@@ -40,6 +43,14 @@ public class JcCardBean {
 
     public boolean isHasBack() {
         return hasBack;
+    }
+
+    public void setIsBackMsg(boolean isBackMsg) {
+        this.isBackMsg = isBackMsg;
+    }
+
+    public boolean getIsBackMsg() {
+        return isBackMsg;
     }
 
     //    public void setFirstCardSession(boolean firstCardSession) {
