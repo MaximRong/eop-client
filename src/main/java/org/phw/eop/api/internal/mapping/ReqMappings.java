@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,10 +38,8 @@ public class ReqMappings {
      */
     public static EopMap getParams(Req req, SecuretType secureteType) {
         EopMap eopMap = new EopMap();
-        if (req == null) {
-            return eopMap;
-        }
-        Map map = parseBean(req, secureteType);
+        if (req == null) { return eopMap; }
+        Map map = parseBean(req, secureteType, false);
         for (Object key : map.keySet()) {
             eopMap.put(key.toString(), map.get(key));
         }
@@ -51,10 +50,12 @@ public class ReqMappings {
      * 解析Req Bean。
      * @param bean 当前Field。
      * @param secureteType 加密类型。
+     * @param withClassName 是否记录bean的类型。
      * @return Map。
      */
-    private static Map parseBean(Object bean, SecuretType secureteType) {
+    private static Map parseBean(Object bean, SecuretType secureteType, boolean withClassName) {
         Map retMap = new HashMap();
+        if (withClassName) retMap.put("@type", bean.getClass().getCanonicalName());
         try {
             List<Field> fields = EopUtils.getDeclaredField(bean.getClass());
             for (Field field : fields) {
@@ -80,9 +81,9 @@ public class ReqMappings {
                         continue;
                     }
                     Class<?> subType = getFieldGenericType(field);
-                    if (subType == null) {
-                        continue;
-                    }
+                    //                    if (subType == null) {
+                    //                        continue;
+                    //                    }
                     List<Object> list = fieldValue == null ? parseEmptyList(subType, secureteType) : parseList(
                             (List<Object>) fieldValue, subType, secureteType);
                     retMap.put(key, list);
@@ -101,8 +102,9 @@ public class ReqMappings {
                     if (fieldValue == null && !emptyMapped) {
                         continue;
                     }
-                    Map map = fieldValue == null ? parseEmptyBean(typeClass, secureteType) : parseBean(
-                            fieldValue, secureteType);
+                    boolean isTypeVariable = TypeVariable.class.isAssignableFrom(field.getGenericType().getClass());
+                    Map map = fieldValue != null ? parseBean(fieldValue, secureteType, isTypeVariable) :
+                             parseEmptyBean(typeClass, secureteType, isTypeVariable);
                     if (fieldAt != null && fieldAt.mappedOut()) {
                         retMap.putAll(map);
                     }
@@ -124,8 +126,9 @@ public class ReqMappings {
      * @param secureteType 加密类型。
      * @return Map。
      */
-    private static Map parseEmptyBean(Class clazz, SecuretType secureteType) {
+    private static Map parseEmptyBean(Class clazz, SecuretType secureteType, boolean withClassName) {
         Map retMap = new HashMap();
+        if (withClassName) return retMap;
         List<Field> fields = EopUtils.getDeclaredField(clazz);
         for (Field field : fields) {
             EopBean beanAt = (EopBean) clazz.getAnnotation(EopBean.class);
@@ -148,9 +151,6 @@ public class ReqMappings {
                     continue;
                 }
                 Class<?> subType = getFieldGenericType(field);
-                if (subType == null) {
-                    continue;
-                }
                 retMap.put(key, parseEmptyList(subType, secureteType));
             }
             // Map
@@ -161,10 +161,11 @@ public class ReqMappings {
             }
             // Bean
             else {
-                if (fieldAt != null && !fieldAt.emptyMapped()) {
+                if (!emptyMapped) {
                     continue;
                 }
-                Map map = parseEmptyBean(typeClass, secureteType);
+                Map map = parseEmptyBean(typeClass, secureteType,
+                        TypeVariable.class.isAssignableFrom(field.getGenericType().getClass()));
                 if (fieldAt != null && fieldAt.mappedOut()) {
                     retMap.putAll(map);
                 }
@@ -180,22 +181,16 @@ public class ReqMappings {
      * 解析List Field。
      */
     private static List<Object> parseList(List<Object> objList, Class<?> subType, SecuretType secureteType) {
-        // 简单类型、String、Map
-        if (subType.isPrimitive() || String.class.isAssignableFrom(subType) || Map.class.isAssignableFrom(subType)) {
-            return objList;
-        }
         List<Object> retList = new ArrayList<Object>();
-        // List Nested
-        if (List.class.isAssignableFrom(subType)) {
-            // not support yet
-        }
-        // Bean
-        else {
-            for (Object obj : objList) {
-                retList.add(parseBean(obj, secureteType));
-            }
+        if (subType != null) {
+            if (subType.isPrimitive() || String.class.isAssignableFrom(subType) ||
+                    Map.class.isAssignableFrom(subType)) return objList;
+            else if (List.class.isAssignableFrom(subType)) return retList;
         }
 
+        for (Object obj : objList) {
+            retList.add(parseBean(obj, secureteType, subType == null));
+        }
         return retList;
     }
 
@@ -208,8 +203,11 @@ public class ReqMappings {
      */
     private static List<Object> parseEmptyList(Class<?> subType, SecuretType secureteType) {
         List<Object> retList = new ArrayList<Object>();
+        if (subType == null) {
+            return retList;
+        }
         // 简单类型、String、Map
-        if (subType.isPrimitive() || String.class.isAssignableFrom(subType) || Map.class.isAssignableFrom(subType)) {
+        else if (subType.isPrimitive() || String.class.isAssignableFrom(subType) || Map.class.isAssignableFrom(subType)) {
             retList.add("");
             return retList;
         }
@@ -219,7 +217,7 @@ public class ReqMappings {
         }
         // Bean
         else {
-            retList.add(parseEmptyBean(subType, secureteType));
+            retList.add(parseEmptyBean(subType, secureteType, false));
         }
         return retList;
     }
@@ -232,27 +230,26 @@ public class ReqMappings {
      * @return
      */
     private static String getMappingKey(EopBean beanAt, ReqField fieldAt, Field field, SecuretType secureteType) {
-        if (field.getName().equals("serialVersionUID")) {
-            return null;
-        }
-        if (field.getAnnotation(Transient.class) != null) {
-            return null;
-        }
-        if (fieldAt != null && fieldAt.securete() == secureteType) {
-            return fieldAt.tagName();
-        }
+        if (field.getName().equals("serialVersionUID")) { return null; }
+        if (field.getAnnotation(Transient.class) != null) { return null; }
+        if (fieldAt != null && fieldAt.securete() == secureteType) { return fieldAt.tagName(); }
         if (beanAt != null && beanAt.securete() == secureteType) {
 
             Class<? extends IPropMapping> clazz = beanAt.propMapping();
             try {
                 return clazz.newInstance().convert(field.getName());
             }
-            catch (InstantiationException e) {
-            }
-            catch (IllegalAccessException e) {
-            }
+            catch (InstantiationException e) {}
+            catch (IllegalAccessException e) {}
         }
         return null;
+    }
+
+    /**
+     * 判断是否具有类型参数。
+     */
+    private static boolean hasTypeVariable(Class<?> clazz) {
+        return false;
     }
 
     /**
@@ -263,9 +260,7 @@ public class ReqMappings {
         if (fieldType instanceof ParameterizedType) {
             ParameterizedType paramType = (ParameterizedType) fieldType;
             Type[] genericTypes = paramType.getActualTypeArguments();
-            if (genericTypes != null && genericTypes.length > 0 && genericTypes[0] instanceof Class<?>) {
-                return (Class<?>) genericTypes[0];
-            }
+            if (genericTypes != null && genericTypes.length > 0 && genericTypes[0] instanceof Class<?>) { return (Class<?>) genericTypes[0]; }
         }
         return null;
     }
@@ -280,19 +275,15 @@ public class ReqMappings {
             method.setAccessible(true);
             return method.invoke(target);
         }
-        catch (NoSuchMethodException e) {
-        }
-        catch (InvocationTargetException e) {
-        }
-        catch (IllegalAccessException e) {
-        }
+        catch (NoSuchMethodException e) {}
+        catch (InvocationTargetException e) {}
+        catch (IllegalAccessException e) {}
 
         try {
             field.setAccessible(true);
             return field.get(target);
         }
-        catch (Exception fe) {
-        }
+        catch (Exception fe) {}
         return null;
     }
 

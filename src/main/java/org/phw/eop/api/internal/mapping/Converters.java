@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,8 +41,7 @@ public class Converters {
 
     public static boolean isCheckJsonType = false; // 是否对JSON返回的数据类型进行校验，默认不校验。给内部测试JSON返回时用的开关。规则：返回的"基本"类型只有String,Long,Boolean,Date,采取严格校验方式，如果类型不匹配，报错
 
-    private Converters() {
-    }
+    private Converters() {}
 
     /**
      * 获取映射名称。
@@ -51,18 +51,14 @@ public class Converters {
      * @return
      */
     private static String getMappingKey(EopBean beanAt, RspField fieldAt, Field field) {
-        if (fieldAt != null && fieldAt.tagName() != null) {
-            return fieldAt.tagName();
-        }
+        if (fieldAt != null && fieldAt.tagName() != null) { return fieldAt.tagName(); }
         if (beanAt != null) {
             Class<? extends IPropMapping> clazz = beanAt.propMapping();
             try {
                 return clazz.newInstance().convert(field.getName());
             }
-            catch (InstantiationException e) {
-            }
-            catch (IllegalAccessException e) {
-            }
+            catch (InstantiationException e) {}
+            catch (IllegalAccessException e) {}
         }
         return null;
     }
@@ -118,9 +114,7 @@ public class Converters {
                         method.invoke(rsp, value.toString());
                     }
                     else {
-                        if (isCheckJsonType && value != null) {
-                            throw new ApiException(itemName + " is not a String");
-                        }
+                        if (isCheckJsonType && value != null) { throw new ApiException(itemName + " is not a String"); }
                         if (value != null) {
                             method.invoke(rsp, value.toString());
                         }
@@ -135,9 +129,8 @@ public class Converters {
                         method.invoke(rsp, (Long) value);
                     }
                     else {
-                        if (isCheckJsonType && value != null) {
-                            throw new ApiException(itemName + " is not a Number(Long)");
-                        }
+                        if (isCheckJsonType && value != null) { throw new ApiException(itemName
+                                + " is not a Number(Long)"); }
                         if (StringUtils.isNumeric(value)) {
                             method.invoke(rsp, Long.valueOf("" + value));
                         }
@@ -149,9 +142,8 @@ public class Converters {
                         method.invoke(rsp, (Integer) value);
                     }
                     else {
-                        if (isCheckJsonType && value != null) {
-                            throw new ApiException(itemName + " is not a Number(Integer)");
-                        }
+                        if (isCheckJsonType && value != null) { throw new ApiException(itemName
+                                + " is not a Number(Integer)"); }
                         if (StringUtils.isNumeric(value)) {
                             method.invoke(rsp, Integer.valueOf("" + value));
                         }
@@ -163,9 +155,7 @@ public class Converters {
                         method.invoke(rsp, (Boolean) value);
                     }
                     else {
-                        if (isCheckJsonType && value != null) {
-                            throw new ApiException(itemName + " is not a Boolean");
-                        }
+                        if (isCheckJsonType && value != null) { throw new ApiException(itemName + " is not a Boolean"); }
                         if (value != null) {
                             method.invoke(rsp, Boolean.valueOf(value.toString()));
                         }
@@ -177,9 +167,7 @@ public class Converters {
                         method.invoke(rsp, (Double) value);
                     }
                     else {
-                        if (isCheckJsonType && value != null) {
-                            throw new ApiException(itemName + " is not a Double");
-                        }
+                        if (isCheckJsonType && value != null) { throw new ApiException(itemName + " is not a Double"); }
                     }
                 }
                 else if (Number.class.isAssignableFrom(typeClass)) {
@@ -188,9 +176,7 @@ public class Converters {
                         method.invoke(rsp, (Number) value);
                     }
                     else {
-                        if (isCheckJsonType && value != null) {
-                            throw new ApiException(itemName + " is not a Number");
-                        }
+                        if (isCheckJsonType && value != null) { throw new ApiException(itemName + " is not a Number"); }
                     }
                 }
                 else if (Date.class.isAssignableFrom(typeClass)) {
@@ -207,17 +193,17 @@ public class Converters {
                         ParameterizedType paramType = (ParameterizedType) fieldType;
                         Type[] genericTypes = paramType.getActualTypeArguments();
                         if (genericTypes != null && genericTypes.length > 0) {
-                            if (genericTypes[0] instanceof Class<?>) {
-                                Class<?> subType = (Class<?>) genericTypes[0];
-                                List<?> listObjs = reader.getListObjects(itemName, subType);
-                                if (listObjs != null) {
-                                    method.invoke(rsp, listObjs);
-                                }
+                            Class<?> subType = genericTypes[0] instanceof Class<?> ?
+                                    (Class<?>) genericTypes[0] : Void.class;
+                            List<?> listObjs = reader.getListObjects(itemName, subType);
+                            if (listObjs != null) {
+                                method.invoke(rsp, listObjs);
                             }
                         }
                     }
                 }
                 else {
+                    if (TypeVariable.class.isAssignableFrom(field.getGenericType().getClass())) typeClass = Void.class;
                     Object obj = reader.getObject(itemName, typeClass);
                     if (obj != null) {
                         method.invoke(rsp, obj);

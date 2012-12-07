@@ -8,17 +8,17 @@ public abstract class Rsp {
     private String rspcode;
     private String rspdesc;
     private String trxid;
-    private String rspmsg;
+    private Object rspmsg;
     private String queryString;
 
     @Override
     public String toString() {
-        return "EopRsp [rspcode=" + this.rspcode + ", rspdesc=" + this.rspdesc + ", trxid=" + this.trxid + ", rspmsg="
-                + this.rspmsg + "]";
+        return "EopRsp [rspcode=" + rspcode + ", rspdesc=" + rspdesc + ", trxid=" + trxid + ", rspmsg="
+                + rspmsg + "]";
     }
 
     public String getRspcode() {
-        return this.rspcode;
+        return rspcode;
     }
 
     public void setRspcode(String rspcode) {
@@ -26,7 +26,7 @@ public abstract class Rsp {
     }
 
     public boolean isSuccess() {
-        return "0".equals(this.rspcode);
+        return "0".equals(rspcode);
     }
 
     public void setTrxid(String trxid) {
@@ -34,7 +34,7 @@ public abstract class Rsp {
     }
 
     public String getTrxid() {
-        return this.trxid;
+        return trxid;
     }
 
     public void setRspdesc(String rspdesc) {
@@ -42,15 +42,7 @@ public abstract class Rsp {
     }
 
     public String getRspdesc() {
-        return this.rspdesc;
-    }
-
-    public void setRspmsg(String rspMsg) {
-        this.rspmsg = rspMsg;
-    }
-
-    public String getRspmsg() {
-        return this.rspmsg;
+        return rspdesc;
     }
 
     public void setQueryString(String queryString) {
@@ -59,5 +51,13 @@ public abstract class Rsp {
 
     public String getQueryString() {
         return queryString;
+    }
+
+    public Object getRspmsg() {
+        return rspmsg;
+    }
+
+    public void setRspmsg(Object rspmsg) {
+        this.rspmsg = rspmsg;
     }
 }

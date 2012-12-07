@@ -20,9 +20,9 @@ public class ObjectJsonParser<T extends Rsp> implements EopParser<T> {
     }
 
     @Override
-    public T parse(String rsp) throws ApiException {
+    public T parse(Object rsp) throws ApiException {
         Converter converter = new JsonConverter();
-        return converter.toResponse(rsp, this.clazz);
+        return converter.toResponse((String) rsp, this.clazz);
     }
 
     @Override

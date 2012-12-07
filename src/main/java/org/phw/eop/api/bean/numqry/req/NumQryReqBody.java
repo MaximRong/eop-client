@@ -22,11 +22,15 @@ public class NumQryReqBody {
 
     private String resourcesType;
 
+    private String packageTag;
+
     private String aLLQueryMode;
 
     private String backNumber;
 
     private String sortMode;
+
+    private String segmentCode;
 
     private String groupMode;
 
@@ -176,6 +180,22 @@ public class NumQryReqBody {
 
     public void setOther(List<OtherBean> other) {
         this.other = other;
+    }
+
+    public String getPackageTag() {
+        return packageTag;
+    }
+
+    public void setPackageTag(String packageTag) {
+        this.packageTag = packageTag;
+    }
+
+    public String getSegmentCode() {
+        return segmentCode;
+    }
+
+    public void setSegmentCode(String segmentCode) {
+        this.segmentCode = segmentCode;
     }
 
 }

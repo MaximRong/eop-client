@@ -1,21 +1,23 @@
 package org.phw.eop.api.internal.util;
 
-import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.phw.eop.api.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +92,8 @@ public abstract class WebUtils {
                 conn = getConnection(proxy, proxyAuthorization, new URL(url), METHOD_POST, ctype);
                 conn.setConnectTimeout(connectTimeout);
                 conn.setReadTimeout(readTimeout);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 Map<String, String> map = getParamsFromUrl(url);
                 EopLogger.logCommError(e, url, map.get("app_key"), map.get("method"), content);
                 throw e;
@@ -98,18 +101,20 @@ public abstract class WebUtils {
             try {
                 out = conn.getOutputStream();
                 out.write(content);
-                String rsp = getResponseAsString(conn);
-                String contentType = conn.getContentType();
 
-                httpRsp.setContentType(contentType);
+                Object rsp = getResponse(conn);
+
+                httpRsp.setContentType(conn.getContentType());
                 httpRsp.setContent(rsp);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 Map<String, String> map = getParamsFromUrl(url);
                 EopLogger.logCommError(e, conn, map.get("app_key"), map.get("method"), content);
                 throw e;
             }
 
-        } finally {
+        }
+        finally {
             if (out != null) {
                 out.close();
             }
@@ -151,7 +156,8 @@ public abstract class WebUtils {
             if (StringUtils.areNotEmpty(name, value)) {
                 if (hasParam) {
                     query.append("&");
-                } else {
+                }
+                else {
                     hasParam = true;
                 }
 
@@ -163,35 +169,48 @@ public abstract class WebUtils {
         return query.toString();
     }
 
-    protected static String getResponseAsString(HttpURLConnection conn) throws IOException {
+    protected static Object getResponse(HttpURLConnection conn) throws IOException {
         String charset = getResponseCharset(conn.getContentType());
+
         InputStream es = conn.getErrorStream();
+
         if (es == null) {
-            return getStreamAsString(conn.getInputStream(), charset);
+            if (isResponseFile(conn)) {
+                return getStreamAsFile(conn, charset);
+            }
+            return IOUtils.toString(conn.getInputStream(), charset);
         }
-        String msg = getStreamAsString(es, charset);
+
+        String msg = IOUtils.toString(es, charset);
         if (StringUtils.isEmpty(msg)) {
             throw new IOException(conn.getResponseCode() + ":" + conn.getResponseMessage());
         }
         throw new IOException(msg);
     }
 
-    private static String getStreamAsString(InputStream stream, String charset) throws IOException {
+    private static boolean isResponseFile(HttpURLConnection conn) {
+        return Strings.indexOf(conn.getContentType(), "application/octet-stream") >= 0;
+    }
+
+    private static File getStreamAsFile(HttpURLConnection conn, String charset) throws IOException {
+        InputStream is = null;
+        OutputStream os = null;
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(stream, charset));
-            StringWriter writer = new StringWriter();
-
-            char[] chars = new char[256];
-            int count = 0;
-            while ((count = reader.read(chars)) > 0) {
-                writer.write(chars, 0, count);
+            String fileName = getResponseFileName(conn.getHeaderField("Content-Disposition"));
+            if (Strings.isEmpty(fileName)) {
+                throw new IOException("file name is empty !");
             }
 
-            return writer.toString();
-        } finally {
-            if (stream != null) {
-                stream.close();
-            }
+            String format = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+            File file = File.createTempFile(format, fileName);
+            is = conn.getInputStream();
+            os = new FileOutputStream(file);
+            IOUtils.copy(is, os);
+            return file;
+        }
+        finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(os);
         }
     }
 
@@ -215,6 +234,24 @@ public abstract class WebUtils {
         }
 
         return charset;
+    }
+
+    private static String getResponseFileName(String disposition) {
+        if (!Strings.isEmpty(disposition)) {
+            String[] params = disposition.split(";");
+            for (String param : params) {
+                param = param.trim();
+                if (param.startsWith("filename")) {
+                    String[] pair = param.split("=", 2);
+                    if (pair.length == 2) {
+                        if (!StringUtils.isEmpty(pair[1])) {
+                            return pair[1].trim();
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -249,7 +286,8 @@ public abstract class WebUtils {
         if (!StringUtils.isEmpty(value)) {
             try {
                 result = URLDecoder.decode(value, charset);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -268,7 +306,8 @@ public abstract class WebUtils {
         if (!StringUtils.isEmpty(value)) {
             try {
                 result = URLEncoder.encode(value, charset);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }

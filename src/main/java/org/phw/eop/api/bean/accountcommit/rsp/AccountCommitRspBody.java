@@ -27,6 +27,9 @@ public class AccountCommitRspBody implements Serializable {
     @RspField(tagName = "NewTradeCon")
     private String newTradeCon;
 
+    @RspField(tagName = "InvoiceNo")
+    private String invoiceNo;
+
     @RspField(tagName = "taxNo")
     private String taxNo;
 
@@ -72,6 +75,14 @@ public class AccountCommitRspBody implements Serializable {
 
     public void setNewTradeCon(String newTradeCon) {
         this.newTradeCon = newTradeCon;
+    }
+
+    public String getInvoiceNo() {
+        return invoiceNo;
+    }
+
+    public void setInvoiceNo(String invoiceNo) {
+        this.invoiceNo = invoiceNo;
     }
 
     public String getTaxNo() {

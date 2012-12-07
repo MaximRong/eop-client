@@ -14,7 +14,7 @@ public interface EopParser<T extends Rsp> {
      * @param rsp 响应字符串
      * @return 领域对象
      */
-    public T parse(String rsp) throws ApiException;
+    public T parse(Object rsp) throws ApiException;
 
     /**
      * 获取响应类类型。

@@ -31,8 +31,8 @@ public class CardDataSynSubReqBody {
     @ReqField(tagName = "TaxBatchNo")
     private String taxBatchNo;
 
-    @ReqField(tagName = "TaxNo")
-    private String taxNo;
+    @ReqField(tagName = "InvoiceNo")
+    private String invoiceNo;
 
     @ReqField(tagName = "TaxType")
     private String taxType;
@@ -96,12 +96,12 @@ public class CardDataSynSubReqBody {
         this.taxBatchNo = taxBatchNo;
     }
 
-    public String getTaxNo() {
-        return taxNo;
+    public String getInvoiceNo() {
+        return invoiceNo;
     }
 
-    public void setTaxNo(String taxNo) {
-        this.taxNo = taxNo;
+    public void setInvoiceNo(String invoiceNo) {
+        this.invoiceNo = invoiceNo;
     }
 
     public String getTaxType() {

@@ -39,6 +39,9 @@ public class ResourcesNumRspBean implements Serializable {
     @RspField(tagName = "NumProduct")
     private String numProduct;
 
+    @RspField(tagName = "SimID")
+    private String simId;
+
     @RspField(tagName = "NumRelNum")
     private String numRelNum;
 
@@ -120,5 +123,13 @@ public class ResourcesNumRspBean implements Serializable {
 
     public void setNumRelNum(String numRelNum) {
         this.numRelNum = numRelNum;
+    }
+
+    public String getSimId() {
+        return simId;
+    }
+
+    public void setSimId(String simId) {
+        this.simId = simId;
     }
 }

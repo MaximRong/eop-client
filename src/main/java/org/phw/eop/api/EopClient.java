@@ -1,12 +1,13 @@
 package org.phw.eop.api;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Map.Entry;
 
-import org.phw.eop.api.internal.parser.json.ObjectJsonParser;
-import org.phw.eop.api.internal.parser.xml.ObjectXmlParser;
+import org.n3r.core.lang.RBase64;
+import org.phw.eop.api.internal.parser.ParserFactory;
 import org.phw.eop.api.internal.util.ByteUtils;
 import org.phw.eop.api.internal.util.EopLogger;
 import org.phw.eop.api.internal.util.EopMap;
@@ -15,8 +16,6 @@ import org.phw.eop.api.internal.util.HttpRsp;
 import org.phw.eop.api.internal.util.Pair;
 import org.phw.eop.api.internal.util.StringUtils;
 import org.phw.eop.api.internal.util.WebUtils;
-
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 /**
  * 基于REST的EOP客户端。
@@ -32,8 +31,9 @@ public class EopClient {
     private String fmt;
     private boolean sign = true;
 
-    private int connectTimeout = 0;
-    private int readTimeout = 0;
+    // TODO: 配置化
+    private int connectTimeout = 3 * 60 * 1000;
+    private int readTimeout = 3 * 60 * 1000;
     private Proxy proxy;
     private String proxyAuthorization;
 
@@ -50,33 +50,31 @@ public class EopClient {
 
     public void setProxyAuthorization(String userName, String password) {
         // uc.setRequestProperty("Proxy-Authorization", "Basic " + encoded);
-        proxyAuthorization = Base64.encode(ByteUtils.toBytes(userName + ':' + password));
+        proxyAuthorization = RBase64.encode(ByteUtils.toBytes(userName + ':' + password));
     }
 
     public <T extends Rsp> T execute(Req<T> request) throws ApiException {
         HttpRsp rt = this.doPost(request);
-        if (rt == null) {
-            return null;
-        }
+        if (rt == null) { return null; }
 
-        String contentType = rt.getContentType();
-        //        Class<T> respClass = (Class<T>) TypeUtils.getActualType(request.getClass(), Req.class);
-        Class<T> respClass = request.getRspClass();
-        EopParser<T> parser = contentType != null && contentType.contains("text/xml") ?
-                new ObjectXmlParser<T>(respClass) : new ObjectJsonParser<T>(respClass);
+        // Class<T> respClass = (Class<T>) TypeUtils.getActualType(request.getClass(), Req.class);
+        EopParser<T> parser = ParserFactory.createParser(rt.getContentType(), request.getRspClass(),
+                rt.getContent() instanceof File);
+
         T tRsp = null;
-        String rspMsg = rt.getContent();
+        Object rspMsg = rt.getContent();
         try {
             tRsp = parser.parse(rspMsg);
         }
         catch (RuntimeException e) {
-            EopLogger.logBizError(rspMsg);
+            EopLogger.logBizError(rspMsg.toString());
             throw e;
         }
 
         if (!tRsp.isSuccess()) {
             EopLogger.logErrorScene(rt, tRsp, signKey);
         }
+
         tRsp.setQueryString(rt.getQuery());
         return tRsp;
     }
@@ -130,7 +128,6 @@ public class EopClient {
         catch (IOException e) {
             throw new ApiException(e);
         }
-
     }
 
     public void setSignAlgorithm(String signAlgorithm) {

@@ -4,7 +4,7 @@
 
     <groupId>eop-client</groupId>
     <artifactId>eop-client</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.1.E02</version>
     <packaging>jar</packaging>
 
     <name>eop-client</name>
@@ -29,8 +29,19 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.1.6</version>
+            <version>1.1.24</version>
         </dependency>
+        <dependency>
+            <artifactId>commons-io</artifactId>
+            <groupId>commons-io</groupId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.n3r</groupId>
+            <artifactId>n3r-core</artifactId>
+            <version>0.0.5.E01</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -73,10 +84,11 @@
                     <source>1.6</source>
                     <target>1.6</target>
                     <encoding>UTF-8</encoding>
+                    
                     <compilerArguments>
                         <bootclasspath>.:${java.home}/lib/rt.jar:${java.home}/lib/jce.jar</bootclasspath>
-                        <!-- <bootclasspath>.:${java.home}/lib/rt.jar;${java.home}/lib/jce.jar</bootclasspath> -->
                     </compilerArguments>
+                   
                 </configuration>
             </plugin>
             <plugin>

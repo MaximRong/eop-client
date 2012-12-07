@@ -21,6 +21,7 @@ import com.alibaba.fastjson.JSON;
  * @since 1.0, Apr 11, 2010
  */
 public class JsonConverter implements Converter {
+
     public static JSON parseJSON(String rsp) {
         try {
             return JSON.parseObject(rsp);
@@ -28,13 +29,6 @@ public class JsonConverter implements Converter {
         catch (Throwable ex) {
 
         }
-
-        //        try {
-        //            return JSON.parseArray(rsp);
-        //        }
-        //        catch (Throwable ex) {
-        //
-        //        }
 
         return null;
     }
@@ -107,7 +101,9 @@ public class JsonConverter implements Converter {
                     Map<?, ?> map = (Map<?, ?>) tmp;
                     Object newInstance;
                     try {
-                        newInstance = type.newInstance();
+                        if (type.equals(Void.class) && !map.containsKey("@@type")) return null;
+                        newInstance = !type.equals(Void.class) ? type.newInstance() :
+                                Class.forName(map.get("@@type").toString()).newInstance();
                     }
                     catch (Exception e) {
                         throw new ApiException(e);
@@ -143,7 +139,9 @@ public class JsonConverter implements Converter {
                         Map<?, ?> subMap = (Map<?, ?>) subTmp;
                         Object subObj = null;
                         try {
-                            subObj = subType.newInstance();
+                            if (subType.equals(Void.class) && !subMap.containsKey("@@type")) continue;
+                            subObj = !subType.equals(Void.class) ? subType.newInstance() :
+                                    Class.forName(subMap.get("@@type").toString()).newInstance();
                         }
                         catch (Exception e) {
                             throw new ApiException(e);
@@ -169,5 +167,4 @@ public class JsonConverter implements Converter {
             }
         });
     }
-
 }

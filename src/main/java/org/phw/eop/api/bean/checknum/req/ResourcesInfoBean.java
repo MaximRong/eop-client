@@ -26,6 +26,9 @@ public class ResourcesInfoBean {
     @ReqField(tagName = "ResourcesType")
     private String resourcesType;
 
+    @ReqField(tagName = "PackageTag")
+    private String packageTag;
+
     @ReqField(tagName = "ResourcesCode")
     private String resourcesCode;
 
@@ -259,6 +262,14 @@ public class ResourcesInfoBean {
 
     public void setDelayOccupiedFlag(String delayOccupiedFlag) {
         this.delayOccupiedFlag = delayOccupiedFlag;
+    }
+
+    public String getPackageTag() {
+        return packageTag;
+    }
+
+    public void setPackageTag(String packageTag) {
+        this.packageTag = packageTag;
     }
 
 }

@@ -24,6 +24,9 @@ public class CardDataSynSubRspBody implements Serializable {
     @RspField(tagName = "ProvOrderID")
     private String provOrderID;
 
+    @RspField(tagName = "InvoiceNo")
+    private String invoiceNo;
+
     @RspField(tagName = "TaxNo")
     private String taxNo;
 
@@ -55,6 +58,14 @@ public class CardDataSynSubRspBody implements Serializable {
 
     public void setProvOrderID(String provOrderID) {
         this.provOrderID = provOrderID;
+    }
+
+    public String getInvoiceNo() {
+        return invoiceNo;
+    }
+
+    public void setInvoiceNo(String invoiceNo) {
+        this.invoiceNo = invoiceNo;
     }
 
     public String getTaxNo() {
