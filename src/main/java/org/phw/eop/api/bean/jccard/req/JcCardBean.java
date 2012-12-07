@@ -12,8 +12,14 @@ public class JcCardBean {
     // 业务类型
     protected String businessType;
 
-    // 是否是第一次请求
-    private boolean isFirst;
+    // 是否返回消息
+    private boolean isBackMsg;
+
+    // 卡操作会话的初始请求
+    //    private boolean firstCardSession;
+
+    // 是否有返回消息
+    private boolean hasBack;
 
     public String getSessionID() {
         return sessionID;
@@ -31,12 +37,28 @@ public class JcCardBean {
         return businessType;
     }
 
-    public void setIsFirst(boolean isFirst) {
-        this.isFirst = isFirst;
+    public void setHasBack(boolean hasBack) {
+        this.hasBack = hasBack;
     }
 
-    public boolean getIsFirst() {
-        return isFirst;
+    public boolean isHasBack() {
+        return hasBack;
     }
+
+    public void setIsBackMsg(boolean isBackMsg) {
+        this.isBackMsg = isBackMsg;
+    }
+
+    public boolean getIsBackMsg() {
+        return isBackMsg;
+    }
+
+    //    public void setFirstCardSession(boolean firstCardSession) {
+    //        this.firstCardSession = firstCardSession;
+    //    }
+    //
+    //    public boolean isFirstCardSession() {
+    //        return firstCardSession;
+    //    }
 
 }

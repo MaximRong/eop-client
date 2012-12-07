@@ -16,8 +16,15 @@ public class JcCardCobRsq {
 
     // 是否有新消息 true 有新消息 false 无
     private boolean hasMsg;
-    // 处理结果 0 失败 1 成功 2 处理中 
+
+    // sessionID
+    private String sessionID;
+
+    // 处理结果 0 校验失败 1 成功 2 处理中 
     private String result;
+
+    // 校验信息
+    private String validMsg;
 
     // if2返回对象, 因为if2对象只会有一个 所以只设置一个
     private JcCardIfMsgRsq if2Bean;
@@ -77,5 +84,21 @@ public class JcCardCobRsq {
 
     public JcCardIf1Rsq getIf1Bean() {
         return if1Bean;
+    }
+
+    public void setValidMsg(String validMsg) {
+        this.validMsg = validMsg;
+    }
+
+    public String getValidMsg() {
+        return validMsg;
+    }
+
+    public void setSessionID(String sessionID) {
+        this.sessionID = sessionID;
+    }
+
+    public String getSessionID() {
+        return sessionID;
     }
 }
